@@ -1,10 +1,11 @@
 import './App.css'
+import Model from './components/models/Model'
 
 function App() {
 
   return (
     <>
-     <h1>Soon will be Multiplayer Game</h1>
+     <Model/>
     </>
   )
 }
