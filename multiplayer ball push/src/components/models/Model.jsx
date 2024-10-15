@@ -16,13 +16,12 @@ function Model() {
 
         child.material.color.convertSRGBToLinear();
 
-        // Ensure material updates are reflected
         child.material.needsUpdate = true;
       }
     });
   }, [scene]);
 
-  return <primitive object={scene} scale={2} />;
+  return <primitive object={scene} scale={1} />;
 }
 
 export default Model;
