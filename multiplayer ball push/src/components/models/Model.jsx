@@ -1,20 +1,28 @@
-import { useGLTF, useTexture } from "@react-three/drei";
+import { useGLTF } from "@react-three/drei";
+import * as THREE from "three";
+import { useEffect } from "react";
 
 function Model() {
-  const model = useGLTF('./arena.glb');  // Load the GLTF model
-  const modelTexture = useTexture('./gameTexture2.png');  // Load the texture
-  modelTexture.flipY = false;
+  const { scene } = useGLTF("./gamearena.glb");
 
-  // Traverse the model and apply the texture to existing materials
-  model.scene.traverse((child) => {
-    if (child.isMesh && child.material) {  
-        
-        child.material.map = modelTexture;  // Replace the existing texture map
-      child.material.needsUpdate = true;  // Ensure the material refreshes
-    }       
-  });
+  useEffect(() => {
+    scene.traverse((child) => {
+      if (child.isMesh && child.material) {
+        child.receiveShadow = true; 
 
-  return <primitive object={model.scene} />;  // Render the model
+        if (child.material.vertexColors) {
+          child.material.vertexColors = THREE.VertexColors;
+        }
+
+        child.material.color.convertSRGBToLinear();
+
+        // Ensure material updates are reflected
+        child.material.needsUpdate = true;
+      }
+    });
+  }, [scene]);
+
+  return <primitive object={scene} scale={2} />;
 }
 
 export default Model;
