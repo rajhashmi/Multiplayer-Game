@@ -39,7 +39,7 @@ function SceneLights() {
       <ambientLight intensity={0.5} />
       <directionalLight
         castShadow
-        intensity={2.5}  
+        intensity={1.5}  
         position={[8.5, 25, 15]}
         shadow-mapSize={[1024, 1024]}
         shadow-camera-near={1}
@@ -48,6 +48,7 @@ function SceneLights() {
         shadow-camera-right={40}
         shadow-camera-bottom={-40}
         shadow-camera-left={-40}
+        shadow-bias={-0.001}
       />
     </>
   );
