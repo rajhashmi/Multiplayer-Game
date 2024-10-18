@@ -3,12 +3,12 @@ import * as THREE from "three";
 import { useEffect } from "react";
 
 function Model() {
-  const { scene } = useGLTF("./gamearena.glb");
+  const { scene } = useGLTF("/gameArena.glb");
 
   useEffect(() => {
     scene.traverse((child) => {
       if (child.isMesh && child.material) {
-        child.receiveShadow = true; 
+        child.receiveShadow = true;
 
         if (child.material.vertexColors) {
           child.material.vertexColors = THREE.VertexColors;

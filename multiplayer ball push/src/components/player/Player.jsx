@@ -4,10 +4,7 @@ import { useRef, useEffect, useState, useCallback, useMemo } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 
-const randomColor = () =>
-  '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0');
-
-export default function Player() {
+export default function Player({ playerColor }) {
   const body = useRef();
   const [visible, setVisible] = useState(true);
   const [subscribeKeys, getKeys] = useKeyboardControls();
@@ -19,25 +16,10 @@ export default function Player() {
   const torque = useRef({ x: 0, y: 0, z: 0 });
 
   const geometry = useMemo(() => new THREE.IcosahedronGeometry(0.3, 3), []);
-  const material = useMemo(() => new THREE.MeshStandardMaterial({ color: randomColor() }), []);
-
-  const ws = useRef(null);
-
-  useEffect(() => {
-    ws.current = new WebSocket("ws://localhost:8080");
-
-    ws.current.onopen = () => {
-      console.log("WebSocket connection established");
-    };
-
-    ws.current.onclose = () => {
-      console.log("WebSocket connection closed");
-    };
-
-    return () => {
-      ws.current.close();  
-    };
-  }, []);
+  const material = useMemo(
+    () => new THREE.MeshStandardMaterial({ color: playerColor }),
+    []
+  );
 
   useEffect(() => {
     const unsubscribe = subscribeKeys(() => {});
@@ -86,19 +68,12 @@ export default function Player() {
 
       const bodyPosition = body.current.translation();
 
-      if (ws.current && ws.current.readyState === WebSocket.OPEN) {
-        ws.current.send(JSON.stringify({
-          position: {
-            x: bodyPosition.x,
-            y: bodyPosition.y,
-            z: bodyPosition.z,
-          },
-         
-        }));
-      }
-
-      const cameraPosition = new THREE.Vector3().copy(bodyPosition).add(new THREE.Vector3(0, 2.5, 5));
-      const cameraTarget = new THREE.Vector3().copy(bodyPosition).add(new THREE.Vector3(0, 0.25, 0));
+      const cameraPosition = new THREE.Vector3()
+        .copy(bodyPosition)
+        .add(new THREE.Vector3(0, 2.5, 5));
+      const cameraTarget = new THREE.Vector3()
+        .copy(bodyPosition)
+        .add(new THREE.Vector3(0, 0.25, 0));
 
       smoothCameraPosition.current.lerp(cameraPosition, 3 * delta);
       smoothCameraTarget.current.lerp(cameraTarget, 3 * delta);
@@ -124,7 +99,12 @@ export default function Player() {
       angularDamping={0.5}
       position={[0, 5, 0]}
     >
-      <mesh castShadow geometry={geometry} material={material} visible={visible} />
+      <mesh
+        castShadow
+        geometry={geometry}
+        material={material}
+        visible={visible}
+      />
     </RigidBody>
   );
 }
