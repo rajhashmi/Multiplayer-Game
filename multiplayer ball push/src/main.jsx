@@ -1,5 +1,6 @@
 import { createRoot } from "react-dom/client";
 import { KeyboardControls } from "@react-three/drei";
+import "./App.css"
 
 import Home from "./components/Home.jsx";
 import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
