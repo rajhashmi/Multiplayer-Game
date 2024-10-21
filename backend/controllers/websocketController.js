@@ -12,7 +12,10 @@ const setupWebSocket = () => {
 
         if (type === "create_room") {
           if (!rooms.has(roomId)) {
-            rooms.set(roomId, new Set());
+            ws.PlayerIdentity = {
+              playerColor
+            }
+            rooms.set(roomId, new Set([ws]));
             ws.send(
               JSON.stringify({
                 type: "room_created",
@@ -29,10 +32,15 @@ const setupWebSocket = () => {
           }
         }
 
+
         if (type === "join_room") {
           if (rooms.has(roomId)) {
             const room = rooms.get(roomId);
+            ws.PlayerIdentity = {
+              playerColor
+            }
             room.add(ws);
+
 
             ws.send(JSON.stringify({ message: `Joined room: ${roomId}` }));
 
