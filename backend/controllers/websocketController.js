@@ -12,9 +12,11 @@ const setupWebSocket = () => {
 
         if (type === "create_room") {
           if (!rooms.has(roomId)) {
-            ws.PlayerIdentity = {
-              playerColor
-            }
+            ws.PlayerIdentity = { playerColor, bodyPosition: {
+              x: 0,
+              y: 0,
+              z: 0
+            } };
             rooms.set(roomId, new Set([ws]));
             ws.send(
               JSON.stringify({
@@ -23,46 +25,46 @@ const setupWebSocket = () => {
               })
             );
           } else {
-            ws.send(
-              JSON.stringify({
-                type: "room_exists",
-                message: `Room ${roomId} already exists!`,
-              })
-            );
-          }
-        }
-
-
-        if (type === "join_room") {
-          if (rooms.has(roomId)) {
             const room = rooms.get(roomId);
-            ws.PlayerIdentity = {
-              playerColor
-            }
+            ws.PlayerIdentity = { playerColor, bodyPosition: {
+              x: 0,
+              y: 0,
+              z: 0
+            } };
             room.add(ws);
-
-
-            ws.send(JSON.stringify({ message: `Joined room: ${roomId}` }));
-
-            if (room.size > 1) {
-              broadcastToRoom(
-                roomId,
-                {
-                  type: "player_joined",
-                  message: `A new player has joined the room.`,
-                  playerColor,
-                },
-                ws
-              );
-            }
-          } else {
-            ws.send(JSON.stringify({ error: "Room not found!" }));
+        
+            const message = {
+              type: "new_player", 
+              playerColor: ws.PlayerIdentity.playerColor,
+            };
+        
+            broadcastToRoom(roomId, message, ws);
           }
         }
+        
+
+        if (type === "player_moved") { 
+          const bodyPosition = parsedData.bodyPosition;
+          const roomId = parsedData.roomID;
+          const roomPlayer = rooms.get(roomId);
+          if(roomPlayer.size){
+            roomPlayer.forEach((child)=>{
+              if(child.PlayerIdentity.playerColor.current === parsedData.playerIdentity){
+                child.PlayerIdentity.bodyPosition.x = bodyPosition.x
+                child.PlayerIdentity.bodyPosition.y = bodyPosition.y
+                child.PlayerIdentity.bodyPosition.z = bodyPosition.z
+              }
+            })
+          }
+
+        }
+    
       } catch (error) {
         console.error("Error parsing data:", error);
       }
-    });
+    }); 
+
+ 
 
     ws.on("close", () => {
       rooms.forEach((clients, roomId) => {
@@ -87,13 +89,14 @@ const setupWebSocket = () => {
 const broadcastToRoom = (roomID, message, sender) => {
   const clients = rooms.get(roomID);
 
-  if (clients) {
+  if (clients && clients.size > 1) {
     clients.forEach((client) => {
       if (client !== sender && client.readyState === WebSocket.OPEN) {
-        client.send(JSON.stringify(message));
+        console.log("doing") 
+        client.send(JSON.stringify(message)); 
       }
-    });
+    }); 
   }
 };
-
+ 
 export { setupWebSocket };
