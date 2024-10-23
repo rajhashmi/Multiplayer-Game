@@ -3,8 +3,9 @@ import { RigidBody } from "@react-three/rapier";
 import { useRef, useEffect, useState, useCallback, useMemo } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
+import Opponent from "../Opponent";
 
-export default function Player({ playerColor }) {
+export default function Player({ playerColor, webSocketConection, roomID }) {
   const body = useRef();
   const [visible, setVisible] = useState(true);
   const [subscribeKeys, getKeys] = useKeyboardControls();
@@ -32,8 +33,12 @@ export default function Player({ playerColor }) {
     }
   }, []);
 
+ 
+
+
   useFrame((state, delta) => {
     if (!visible) return;
+    let needPlayerPositionChange = false;
 
     const { forward, backward, leftward, rightward } = getKeys();
     const imp = impulse.current;
@@ -48,25 +53,37 @@ export default function Player({ playerColor }) {
     if (forward) {
       imp.z -= impulseStrength;
       torq.x -= torqueStrength;
+      needPlayerPositionChange = true
     }
     if (rightward) {
       imp.x += impulseStrength;
       torq.z -= torqueStrength;
+      needPlayerPositionChange = true
     }
     if (backward) {
       imp.z += impulseStrength;
       torq.x += torqueStrength;
+      needPlayerPositionChange = true
     }
     if (leftward) {
       imp.x -= impulseStrength;
       torq.z += torqueStrength;
+      needPlayerPositionChange = true
     }
 
     if (body.current) {
-      body.current.applyImpulse(imp, true);
-      body.current.applyTorqueImpulse(torq, true);
+      if(needPlayerPositionChange){ 
+        body.current.applyImpulse(imp, true);
+        body.current.applyTorqueImpulse(torq, true);
+      }
 
       const bodyPosition = body.current.translation();
+
+      if(webSocketConection){
+        if(webSocketConection.readyState === WebSocket.OPEN){
+          webSocketConection.send(JSON.stringify({type: "player_moved", bodyPosition , playerIdentity : playerColor , roomID}))
+        }
+      }
 
       const cameraPosition = new THREE.Vector3()
         .copy(bodyPosition)
@@ -89,14 +106,29 @@ export default function Player({ playerColor }) {
   });
 
   return (
+    <>
+    <RigidBody
+      colliders="ball"
+      canSleep={false}
+      restitution={0.6} 
+      friction={0.3} 
+      linearDamping={0.1} 
+      angularDamping={0.1} 
+      position={[1, 5, 0]}
+    >
+      
+      <Opponent  geometry={geometry}
+        webSocketConection={webSocketConection}
+        />
+    </RigidBody>
     <RigidBody
       ref={body}
       colliders="ball"
       canSleep={false}
-      restitution={0.2}
-      friction={1}
-      linearDamping={0.5}
-      angularDamping={0.5}
+      restitution={0.6}
+      friction={0.3}
+      linearDamping={0.1}
+      angularDamping={0.1}
       position={[0, 5, 0]}
     >
       <mesh
@@ -106,5 +138,9 @@ export default function Player({ playerColor }) {
         visible={visible}
       />
     </RigidBody>
+    
+    </>
+    
+    
   );
 }
