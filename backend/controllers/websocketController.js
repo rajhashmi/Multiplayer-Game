@@ -32,15 +32,27 @@ const setupWebSocket = () => {
               z: 0
             } };
             room.add(ws);
-        
+
             const message = {
               type: "new_player", 
               playerColor: ws.PlayerIdentity.playerColor,
             };
-        
+            console.log(rooms)
             broadcastToRoom(roomId, message, ws);
           }
-        }
+
+          setInterval(()=>{
+            const newArr = Array.from(rooms.keys());
+            if(newArr.length){
+                newArr.forEach((roomName)=>{
+                  const room = Array.from(rooms.get(roomName));
+                  console.log(room[0].PlayerIdentity);
+                  []
+                })
+            }
+            
+        }, 30)
+        } 
         
 
         if (type === "player_moved") { 
@@ -58,9 +70,11 @@ const setupWebSocket = () => {
           }
 
         }
+
+        
     
       } catch (error) {
-        console.error("Error parsing data:", error);
+        console.error("Error parsing data:", error);  
       }
     }); 
 
@@ -92,7 +106,6 @@ const broadcastToRoom = (roomID, message, sender) => {
   if (clients && clients.size > 1) {
     clients.forEach((client) => {
       if (client !== sender && client.readyState === WebSocket.OPEN) {
-        console.log("doing") 
         client.send(JSON.stringify(message)); 
       }
     }); 
