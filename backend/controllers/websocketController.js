@@ -10,13 +10,35 @@ const setupWebSocket = () => {
         const parsedData = JSON.parse(data);
         const { type, roomId, playerColor } = parsedData;
 
+        if(type === "request_player"){
+          const roomID = parsedData.roomID
+          const retrivedData = rooms.get(roomID)
+          if(retrivedData.size > 1){
+            const playersPostion = [];
+          retrivedData.forEach((players)=>{
+            if(ws !== players){
+              playersPostion.push(players.PlayerIdentity)
+            }
+            })
+            
+            if(ws.readyState === WebSocket.OPEN){
+
+           
+
+              ws.send(JSON.stringify({ type: "requested_player", playerDetails: playersPostion }));
+
+            }
+          }
+        }
+
+
         if (type === "create_room") {
           if (!rooms.has(roomId)) {
-            ws.PlayerIdentity = { playerColor, bodyPosition: {
-              x: 0,
-              y: 0,
-              z: 0
-            } };
+            ws.PlayerIdentity = {
+              playerColor,
+              bodyPosition: { x: 0, y: 0, z: 0 },
+              roomId,
+            };
             rooms.set(roomId, new Set([ws]));
             ws.send(
               JSON.stringify({
@@ -24,61 +46,42 @@ const setupWebSocket = () => {
                 message: `Room ${roomId} created!`,
               })
             );
+
           } else {
             const room = rooms.get(roomId);
-            ws.PlayerIdentity = { playerColor, bodyPosition: {
-              x: 0,
-              y: 0,
-              z: 0
-            } };
+            ws.PlayerIdentity = {
+              playerColor,
+              bodyPosition: { x: 0, y: 0, z: 0 },
+              roomId,
+            };
             room.add(ws);
 
             const message = {
-              type: "new_player", 
+              type: "new_player",
               playerColor: ws.PlayerIdentity.playerColor,
+              playerAlreadyInRoom: room.size
             };
-            console.log(rooms)
-            broadcastToRoom(roomId, message, ws);
+            broadcastToRoom(roomId, message, null);
           }
 
-          setInterval(()=>{
-            const newArr = Array.from(rooms.keys());
-            if(newArr.length){
-                newArr.forEach((roomName)=>{
-                  const room = Array.from(rooms.get(roomName));
-                  console.log(room[0].PlayerIdentity);
-                  []
-                })
-            }
-            
-        }, 30)
-        } 
-        
-
-        if (type === "player_moved") { 
-          const bodyPosition = parsedData.bodyPosition;
-          const roomId = parsedData.roomID;
-          const roomPlayer = rooms.get(roomId);
-          if(roomPlayer.size){
-            roomPlayer.forEach((child)=>{
-              if(child.PlayerIdentity.playerColor.current === parsedData.playerIdentity){
-                child.PlayerIdentity.bodyPosition.x = bodyPosition.x
-                child.PlayerIdentity.bodyPosition.y = bodyPosition.y
-                child.PlayerIdentity.bodyPosition.z = bodyPosition.z
-              }
-            })
-          }
-
+      
         }
-
-        
-    
+       
+        if (type === "player_moved") {
+          const { bodyPosition, playerColor, roomId } = parsedData;
+          const room = rooms.get(roomId);
+          if (room) {
+            room.forEach((player) => {
+              if (player.PlayerIdentity.playerColor === playerColor) {
+                player.PlayerIdentity.bodyPosition = bodyPosition;
+              }
+            });
+          }
+        }
       } catch (error) {
-        console.error("Error parsing data:", error);  
+        console.error("Error parsing data:", error);
       }
-    }); 
-
- 
+    });
 
     ws.on("close", () => {
       rooms.forEach((clients, roomId) => {
@@ -88,10 +91,7 @@ const setupWebSocket = () => {
         } else {
           broadcastToRoom(
             roomId,
-            {
-              type: "player_left",
-              message: `A player has left the room.`,
-            },
+            { type: "player_left", message: `A player has left the room.` },
             ws
           );
         }
@@ -100,16 +100,15 @@ const setupWebSocket = () => {
   });
 };
 
-const broadcastToRoom = (roomID, message, sender) => {
+const broadcastToRoom = (roomID, message, sender = null) => {
   const clients = rooms.get(roomID);
-
-  if (clients && clients.size > 1) {
+  if (clients && clients.size > 0) {
     clients.forEach((client) => {
       if (client !== sender && client.readyState === WebSocket.OPEN) {
-        client.send(JSON.stringify(message)); 
+        client.send(JSON.stringify(message));
       }
-    }); 
+    });
   }
 };
- 
+
 export { setupWebSocket };
