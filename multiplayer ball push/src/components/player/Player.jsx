@@ -119,6 +119,7 @@ export default function Player({ playerColor, webSocketConection, roomID }) {
       
       <Opponent  geometry={geometry}
         webSocketConection={webSocketConection}
+        roomID={roomID}
         />
     </RigidBody>
     <RigidBody
