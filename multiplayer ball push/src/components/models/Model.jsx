@@ -3,7 +3,7 @@ import * as THREE from "three";
 import { useEffect } from "react";
 
 function Model() {
-  const { scene } = useGLTF("/gameArena.glb");
+  const { scene } = useGLTF("/gamearena.glb");
 
   useEffect(() => {
     scene.traverse((child) => {

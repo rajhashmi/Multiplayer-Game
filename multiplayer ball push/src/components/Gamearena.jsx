@@ -26,7 +26,9 @@ function GameArena() {
 
     ws.current.onmessage = (event) => {
       const data = JSON.parse(event.data);
-      if (data.error) alert(data.error);
+      if (data.error) {
+        console.log('error', data);
+      }
       if (data.type === "room_created" && !roomCreated) {
         console.log(data);
       }
@@ -34,7 +36,7 @@ function GameArena() {
 
     ws.current.onerror = (error) => {
       console.error("WebSocket error:", error);
-      alert("Unable to connect to the server.");
+      // alert("Unable to connect to the server.");
     };
 
     return () => ws.current.close();
