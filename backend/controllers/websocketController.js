@@ -8,6 +8,7 @@ const setupWebSocket = () => {
     ws.on("message", (data) => {
       try {
         const parsedData = JSON.parse(data);
+        console.log('websocket parsed data', parsedData);
         const { type, roomId, playerColor } = parsedData;
 
         if(type === "request_player"){

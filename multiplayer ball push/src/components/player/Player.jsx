@@ -5,8 +5,23 @@ import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import Opponent from "../Opponent";
 
-export default function Player({ playerColor, webSocketConection, roomID }) {
+function throttle(mainFunction, delay) {
+  let timerFlag = null; // Variable to keep track of the timer
+
+  // Returning a throttled version 
+  return (...args) => {
+    if (timerFlag === null) { // If there is no timer currently running
+      mainFunction(...args); // Execute the main function 
+      timerFlag = setTimeout(() => { // Set a timer to clear the timerFlag after the specified delay
+        timerFlag = null; // Clear the timerFlag to allow the main function to be executed again
+      }, delay);
+    }
+  };
+}
+
+export default function Player({ playerColor, webSocketConnection, roomID }) {
   const body = useRef();
+  const workerRef = useRef();
   const [visible, setVisible] = useState(true);
   const [subscribeKeys, getKeys] = useKeyboardControls();
 
@@ -16,10 +31,12 @@ export default function Player({ playerColor, webSocketConection, roomID }) {
   const impulse = useRef({ x: 0, y: 0, z: 0 });
   const torque = useRef({ x: 0, y: 0, z: 0 });
 
+  const bodyPositionRef = useRef(null);
+
   const geometry = useMemo(() => new THREE.IcosahedronGeometry(0.3, 3), []);
   const material = useMemo(
     () => new THREE.MeshStandardMaterial({ color: playerColor }),
-    []
+    [playerColor]
   );
 
   useEffect(() => {
@@ -33,6 +50,59 @@ export default function Player({ playerColor, webSocketConection, roomID }) {
     }
   }, []);
 
+  
+//   const bodyPosition = body.current?.translation();
+  
+//   console.log('bodyPositionPos', bodyPosition);
+//  useEffect(() => {
+//   if(!bodyPosition) return;
+//  },[bodyPosition])
+
+useEffect(() => {
+  workerRef.current = new Worker(new URL('../../workers/websocket.js', import.meta.url));
+
+  console.log('workerRef', workerRef);
+  // Send initialization data to the worker
+  workerRef.current.postMessage({
+    type: 'INIT',
+    data: { playerColor, roomID },
+  });
+
+  return () => {
+    // Terminate the worker when the component unmounts
+    workerRef.current.terminate();
+  };
+}, [playerColor, roomID, webSocketConnection]);
+
+
+// const sendBallPosition = useCallback(
+//   throttle((ballPosition) => {
+//     workerRef.current.postMessage({
+//       type: 'SEND_POSITION',
+//       data: { ballPosition },
+//     });
+//   }, 100),
+//   []
+// );
+
+//  const sendBallPosition = useCallback(throttle((ballPosition) => {
+//   console.log('throttling', ballPosition);
+
+  
+//       if(webSocketConnection) {
+//         if(webSocketConnection.readyState === WebSocket.OPEN){
+//           webSocketConnection.send(JSON.stringify({type: "player_moved", ballPosition , playerIdentity : playerColor , roomID}))
+//         }
+//       }
+//     }
+//     ,100),[playerColor, roomID, webSocketConnection])
+
+  // const memoizedSendCallBackPosition = useCallback(() => sendBallPosition, [sendBallPosition])
+
+
+// const sendBallPosition = 
+ 
+  
  
 
 
@@ -78,12 +148,12 @@ export default function Player({ playerColor, webSocketConection, roomID }) {
       }
 
       const bodyPosition = body.current.translation();
-
-      if(webSocketConection){
-        if(webSocketConection.readyState === WebSocket.OPEN){
-          webSocketConection.send(JSON.stringify({type: "player_moved", bodyPosition , playerIdentity : playerColor , roomID}))
-        }
-      }
+      bodyPositionRef.current = bodyPosition;
+      // console.log('ballPos', sendBallPosition);
+      workerRef.current.postMessage({
+        type: 'SEND_POSITION',
+        data: { ballPosition: bodyPosition },
+      });
 
       const cameraPosition = new THREE.Vector3()
         .copy(bodyPosition)
@@ -118,7 +188,7 @@ export default function Player({ playerColor, webSocketConection, roomID }) {
     >
       
       <Opponent  geometry={geometry}
-        webSocketConection={webSocketConection}
+        webSocketConnection={webSocketConnection}
         roomID={roomID}
         />
     </RigidBody>
