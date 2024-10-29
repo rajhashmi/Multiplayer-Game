@@ -9,7 +9,6 @@ function Model() {
     scene.traverse((child) => {
       if (child.isMesh && child.material) {
         child.receiveShadow = true;
-
         if (child.material.vertexColors) {
           child.material.vertexColors = THREE.VertexColors;
         }

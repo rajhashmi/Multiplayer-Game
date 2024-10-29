@@ -1,6 +1,6 @@
 import { createRoot } from "react-dom/client";
-import { KeyboardControls } from "@react-three/drei";
-import "./App.css"
+import { KeyboardControls, OrbitControls } from "@react-three/drei";
+import "./App.css";
 
 import Home from "./components/Home.jsx";
 import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
@@ -18,15 +18,17 @@ createRoot(document.getElementById("root")).render(
           { name: "rightward", keys: ["ArrowRight", "KeyD"] },
         ]}
       >
-          <Canvas
-           shadows
-           dpr={[1, 2]}
-           camera={{ fov: 45, near: 0.1, far: 200, position: [-35, 29, 11] }}>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/game/:id" element={<GameArena />} />
-        </Routes>
-          </Canvas>
+        <Canvas
+          shadows
+          dpr={[1, 2]}
+          camera={{ fov: 45, near: 0.1, far: 200, position: [-35, 29, 11] }}
+        >
+          <OrbitControls/>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/game/:id" element={<GameArena />} />
+          </Routes>
+        </Canvas>
       </KeyboardControls>
     </Router>
   </>
