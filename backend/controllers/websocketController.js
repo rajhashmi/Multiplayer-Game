@@ -70,6 +70,7 @@ const setupWebSocket = () => {
         if (type === "player_moved") {
           const { bodyPosition, playerColor, roomId } = parsedData;
           const room = rooms.get(roomId);
+          console.log("working")
           if (room) {
             room.forEach((player) => {
               if (player.PlayerIdentity.playerColor === playerColor) {

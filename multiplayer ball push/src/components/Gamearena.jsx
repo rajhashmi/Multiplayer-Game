@@ -69,9 +69,9 @@ const Scene = memo(({ playerColor, ws, roomID }) => (
         <Model />
       </RigidBody>
       <Player
-        webSocketConnection={ws}
-        playerColor={playerColor}
-        roomID={roomID}
+         webSocketConnection={ws}  
+         playerColor={playerColor}
+         roomID={roomID}
       />
     </Physics>
   </>
@@ -86,7 +86,7 @@ function SceneLights() {
 
   return (
     <>
-      <ambientLight intensity={8.5} />
+      <ambientLight intensity={5.5} />
       <directionalLight
         ref={directionalLightRef}
         castShadow

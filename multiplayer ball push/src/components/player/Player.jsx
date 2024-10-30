@@ -5,7 +5,7 @@ import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import Opponent from "../Opponent";
 
-export default function Player({ playerColor, webSocketConection, roomID }) {
+export default function Player({ playerColor, webSocketConnection, roomID }) {
   const body = useRef();
   const [visible, setVisible] = useState(true);
   const [subscribeKeys, getKeys] = useKeyboardControls();
@@ -79,9 +79,10 @@ export default function Player({ playerColor, webSocketConection, roomID }) {
 
       const bodyPosition = body.current.translation();
 
-      if(webSocketConection){
-        if(webSocketConection.readyState === WebSocket.OPEN){
-          webSocketConection.send(JSON.stringify({type: "player_moved", bodyPosition , playerIdentity : playerColor , roomID}))
+      if(webSocketConnection){
+        console.log("web is there")
+        if(webSocketConnection.readyState === WebSocket.OPEN){
+          webSocketConnection.send(JSON.stringify({type: "player_moved", bodyPosition , playerIdentity : playerColor , roomID}))
         }
       }
 
@@ -118,7 +119,7 @@ export default function Player({ playerColor, webSocketConection, roomID }) {
     >
       
       <Opponent  geometry={geometry}
-        webSocketConection={webSocketConection}
+        webSocketConnection={webSocketConnection}
         roomID={roomID}
         />
     </RigidBody>
