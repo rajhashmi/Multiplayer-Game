@@ -33,12 +33,10 @@ export default function Player({ playerColor, webSocketConnection, roomID }) {
     }
   }, []);
 
- 
-
+  const lastSentTime = useRef(Date.now());
 
   useFrame((state, delta) => {
     if (!visible) return;
-    let needPlayerPositionChange = false;
 
     const { forward, backward, leftward, rightward } = getKeys();
     const imp = impulse.current;
@@ -53,37 +51,40 @@ export default function Player({ playerColor, webSocketConnection, roomID }) {
     if (forward) {
       imp.z -= impulseStrength;
       torq.x -= torqueStrength;
-      needPlayerPositionChange = true
     }
     if (rightward) {
       imp.x += impulseStrength;
       torq.z -= torqueStrength;
-      needPlayerPositionChange = true
     }
     if (backward) {
       imp.z += impulseStrength;
       torq.x += torqueStrength;
-      needPlayerPositionChange = true
     }
     if (leftward) {
       imp.x -= impulseStrength;
       torq.z += torqueStrength;
-      needPlayerPositionChange = true
     }
 
     if (body.current) {
-      if(needPlayerPositionChange){ 
-        body.current.applyImpulse(imp, true);
-        body.current.applyTorqueImpulse(torq, true);
-      }
+      body.current.applyImpulse(imp, true);
+      body.current.applyTorqueImpulse(torq, true);
 
       const bodyPosition = body.current.translation();
 
-      if(webSocketConnection){
-        console.log("web is there")
-        if(webSocketConnection.readyState === WebSocket.OPEN){
-          webSocketConnection.send(JSON.stringify({type: "player_moved", bodyPosition , playerIdentity : playerColor , roomID}))
-        }
+      if (
+        webSocketConnection &&
+        webSocketConnection.readyState === WebSocket.OPEN &&
+        Date.now() - lastSentTime.current >= 1000
+      ) {
+        webSocketConnection.send(
+          JSON.stringify({
+            type: "player_moved",
+            bodyPosition,
+            playerIdentity: playerColor,
+            roomID,
+          })
+        );
+        lastSentTime.current = Date.now();  
       }
 
       const cameraPosition = new THREE.Vector3()
@@ -108,22 +109,8 @@ export default function Player({ playerColor, webSocketConnection, roomID }) {
 
   return (
     <>
-    <RigidBody
-      colliders="ball"
-      canSleep={false}
-      restitution={0.6} 
-      friction={0.3} 
-      linearDamping={0.1} 
-      angularDamping={0.1} 
-      position={[1, 5, 0]}
-    >
-      
-      <Opponent  geometry={geometry}
-        webSocketConnection={webSocketConnection}
-        roomID={roomID}
-        />
-    </RigidBody>
-    <RigidBody
+
+<RigidBody
       ref={body}
       colliders="ball"
       canSleep={false}
@@ -133,16 +120,14 @@ export default function Player({ playerColor, webSocketConnection, roomID }) {
       angularDamping={0.1}
       position={[0, 5, 0]}
     >
-      <mesh
-        castShadow
-        geometry={geometry}
-        material={material}
-        visible={visible}
-      />
+      <mesh castShadow geometry={geometry} material={material} visible={visible} />
     </RigidBody>
+
+      <Opponent webSocketConnection={webSocketConnection} />
     
     </>
-    
+ 
+
     
   );
 }
