@@ -46,9 +46,13 @@ const setupWebSocket = () => {
                 message: `Room ${roomId} created!`,
               })
             );
+            console.log(roomId, "fhdfhdfh")
+
 
           } else {
             const room = rooms.get(roomId);
+            console.log(room);
+            
             ws.PlayerIdentity = {
               playerColor,
               bodyPosition: { x: 0, y: 0, z: 0 },
@@ -59,7 +63,7 @@ const setupWebSocket = () => {
             const message = {
               type: "new_player",
               playerColor: ws.PlayerIdentity.playerColor,
-              playerAlreadyInRoom: room.size
+              playerPosition:  ws.PlayerIdentity.bodyPosition
             };
             broadcastToRoom(roomId, message, null);
           }
@@ -68,15 +72,15 @@ const setupWebSocket = () => {
         }
        
         if (type === "player_moved") {
-          const { bodyPosition, playerColor, roomId } = parsedData;
-          const room = rooms.get(roomId);
-          console.log("working")
+          const { bodyPosition, playerIdentity, roomID } = parsedData;
+          const room = rooms.get(roomID);
           if (room) {
             room.forEach((player) => {
-              if (player.PlayerIdentity.playerColor === playerColor) {
+              if (player.PlayerIdentity.playerColor === playerIdentity) {
                 player.PlayerIdentity.bodyPosition = bodyPosition;
+                // broadcastToRoom(roomID, {PlayerIdentity: player.PlayerIdentity, type: "opponent_position"}, ws);
               }
-            });
+            }); 
           }
         }
       } catch (error) {
@@ -102,6 +106,7 @@ const setupWebSocket = () => {
 };
 
 const broadcastToRoom = (roomID, message, sender = null) => {
+console.log(roomID, message)
   const clients = rooms.get(roomID);
   if (clients && clients.size > 0) {
     clients.forEach((client) => {
