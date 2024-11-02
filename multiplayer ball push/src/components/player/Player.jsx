@@ -74,7 +74,7 @@ export default function Player({ playerColor, webSocketConnection, roomID }) {
       if (
         webSocketConnection &&
         webSocketConnection.readyState === WebSocket.OPEN &&
-        Date.now() - lastSentTime.current >= 1000
+        Date.now() - lastSentTime.current >= 30
       ) {
         webSocketConnection.send(
           JSON.stringify({
@@ -120,10 +120,11 @@ export default function Player({ playerColor, webSocketConnection, roomID }) {
       angularDamping={0.1}
       position={[0, 5, 0]}
     >
-      <mesh castShadow geometry={geometry} material={material} visible={visible} />
+    <mesh castShadow geometry={geometry} material={material} visible={visible} />
     </RigidBody>
 
-      <Opponent webSocketConnection={webSocketConnection} />
+  
+      <Opponent webSocketConnection={webSocketConnection} geometry={geometry} />
     
     </>
  

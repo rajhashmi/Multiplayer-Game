@@ -1,7 +1,5 @@
 import { useRef, useEffect, useState, memo } from "react";
 import { Physics, RigidBody } from "@react-three/rapier";
-import { useHelper } from "@react-three/drei";
-import { DirectionalLightHelper, CameraHelper } from "three";
 import Model from "./models/Model.jsx";
 import Player from "./player/Player.jsx";
 
@@ -64,7 +62,7 @@ function GameArena() {
 const Scene = memo(({ playerColor, ws, roomID }) => (
   <>
     <SceneLights />
-    <Physics gravity={[0, -9.81, 0]}>
+    <Physics gravity={[0, -9.81, 0]} debug>
       <RigidBody type="fixed" colliders="hull">
         <Model />
       </RigidBody>
@@ -78,17 +76,10 @@ const Scene = memo(({ playerColor, ws, roomID }) => (
 ));
 
 function SceneLights() {
-  const directionalLightRef = useRef();
-
-  // Attach helpers to the light and shadow camera
-  useHelper(directionalLightRef, DirectionalLightHelper, 5, "red");
-  useHelper(() => directionalLightRef.current?.shadow.camera, CameraHelper);
-
   return (
     <>
-      <ambientLight intensity={5.5} />
+      <ambientLight intensity={1.5} />
       <directionalLight
-        ref={directionalLightRef}
         castShadow
         intensity={1.5}
         position={[8.5, 10, 15]}

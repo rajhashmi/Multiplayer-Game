@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Html } from "@react-three/drei";
+import { useEffect, useState } from "react";
+import { Html, useGLTF } from "@react-three/drei";
 import { useNavigate } from "react-router-dom";
 
 function Home() {
@@ -14,6 +14,9 @@ function Home() {
     setGeneratedRoomId(newRoomId);
     navigate(`/game/${newRoomId}`);
   };
+  useEffect(()=>{
+    useGLTF.preload("/gameArena.glb");
+  }, [])
 
   const handleJoinRoom = () => {
     if (!roomCode) {

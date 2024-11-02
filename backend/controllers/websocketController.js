@@ -36,7 +36,7 @@ const setupWebSocket = () => {
           if (!rooms.has(roomId)) {
             ws.PlayerIdentity = {
               playerColor,
-              bodyPosition: { x: 0, y: 0, z: 0 },
+              bodyPosition: { x: 0, y: 5, z: 0 },
               roomId,
             };
             rooms.set(roomId, new Set([ws]));
@@ -55,7 +55,7 @@ const setupWebSocket = () => {
             
             ws.PlayerIdentity = {
               playerColor,
-              bodyPosition: { x: 0, y: 0, z: 0 },
+              bodyPosition: { x: 0, y: 5, z: 0 },
               roomId,
             };
             room.add(ws);
@@ -78,7 +78,7 @@ const setupWebSocket = () => {
             room.forEach((player) => {
               if (player.PlayerIdentity.playerColor === playerIdentity) {
                 player.PlayerIdentity.bodyPosition = bodyPosition;
-                // broadcastToRoom(roomID, {PlayerIdentity: player.PlayerIdentity, type: "opponent_position"}, ws);
+                broadcastToRoom(roomID, {PlayerIdentity: player.PlayerIdentity, type: "opponent_position"}, ws);
               }
             }); 
           }

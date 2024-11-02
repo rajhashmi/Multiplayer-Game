@@ -1,58 +1,60 @@
-import { useEffect, useState, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import * as THREE from "three";
 
-function Opponent({ geometry, webSocketConection, roomID }) {
-  const [playerOpponent, setPlayerOpponent] = useState([]);
-  const connectionRef = useRef(webSocketConection); // Use ref for stable reference
-
-  // Request player information based on roomID
-  const requestPlayer = () => {
-    if (connectionRef.current?.readyState === WebSocket.OPEN) {
-      const message = JSON.stringify({
-        type: "request_player",
-        roomID: roomID,
-      });
-      connectionRef.current.send(message);
-    }
-  };
+function Opponent({ webSocketConnection, geometry }) {
+  const [boxes, setBoxes] = useState([]);
+  const [positionUpdateTrigger, setPositionUpdateTrigger] = useState(0);  
+  const opponentPosition = useRef([]);
 
   useEffect(() => {
-    const handleIncomingMessage = (event) => {
-      const data = JSON.parse(event.data);
+    if (!webSocketConnection) return;
 
-      if (data.type === "new_player") {
-        setPlayerOpponent((prev) =>
-          prev.includes(data.playerColor) ? prev : [...prev, data.playerColor]
-        );
-      }
+    const handleMessage = (event) => {
+      const message = JSON.parse(event.data);
 
-      if (data.type === "requested_player") {
-        setPlayerOpponent((prev) => {
-          const newPlayers = data.playerDetails.filter(
-            (player) => !prev.includes(player)
-          );
-          return [...prev, ...newPlayers];
+      if (message.type === "new_player") {
+        const opponentInfo = {
+          playerIdentity: message.playerColor,
+          playerPosition: message.playerPosition,
+        };
+        opponentPosition.current.push(opponentInfo);
+        setBoxes((prev) => [...prev, message.playerColor]);
+      } else if (message.type === "opponent_position") {
+        opponentPosition.current.forEach((el) => {
+          if (el.playerIdentity === message.PlayerIdentity.playerColor) {
+            el.playerPosition = message.PlayerIdentity.bodyPosition;
+          }
         });
+        setPositionUpdateTrigger((prev) => prev + 1);  
       }
     };
 
-    connectionRef.current = webSocketConection;
+    webSocketConnection.addEventListener("message", handleMessage);
 
-    if (connectionRef.current) {
-      connectionRef.current.addEventListener("message", handleIncomingMessage);
-    }
-
-    requestPlayer();
-
- 
     return () => {
-      connectionRef.current?.removeEventListener(
-        "message",
-        handleIncomingMessage
-      );
+      webSocketConnection.removeEventListener("message", handleMessage);
     };
-  }, [webSocketConection, roomID]);
+  }, [webSocketConnection]);
 
-  return <>{console.log(playerOpponent)}</>;  
+  return (
+    <>
+      {boxes.map((el, index) => (
+       
+        <mesh
+           geometry={geometry}
+           key={index}
+           position={[
+             opponentPosition.current[index].playerPosition.x,
+             opponentPosition.current[index].playerPosition.y,
+             opponentPosition.current[index].playerPosition.z,
+           ]}
+         >
+           <meshStandardMaterial color={el} />
+         </mesh>
+     
+      ))}
+    </>
+  );
 }
 
 export default Opponent;
