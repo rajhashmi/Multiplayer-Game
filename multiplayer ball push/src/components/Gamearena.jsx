@@ -2,7 +2,6 @@ import { useRef, useEffect, useState, memo } from "react";
 import { Physics, RigidBody } from "@react-three/rapier";
 import Model from "./models/Model.jsx";
 import Player from "./player/Player.jsx";
-
 const randomColor = () =>
   "#" + Math.floor(Math.random() * 16777215).toString(16).padStart(6, "0");
 
@@ -71,6 +70,7 @@ const Scene = memo(({ playerColor, ws, roomID }) => (
          playerColor={playerColor}
          roomID={roomID}
       />
+ 
     </Physics>
   </>
 ));
